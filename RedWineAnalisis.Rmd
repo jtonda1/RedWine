@@ -1,0 +1,292 @@
+---
+title: "R Notebook"
+output:
+  html_document:
+    df_print: paged
+  html_notebook: default
+  pdf_document: default
+---
+
+```{r}
+#librerías necesarias para el proyecto
+
+library(dplyr)
+library(ggplot2)
+library(corrgram)
+library(corrplot)
+library(outliers)
+library(nortest)
+library(car)
+library(FactoMineR)
+library(stats)
+library(gridExtra)
+library(conflicted)
+conflict_prefer("select", "dplyr")
+
+```
+
+```{r}
+#Carga de datos
+
+wineData<-read.csv("C:/Users/Juan/OneDrive/MASTER EN CIENCIA DE DATOS/TIPOLOGÍA Y CICLO DEL DATO/PRACTICA2/winequality-red.csv",sep=";")
+```
+
+```{r}
+#Se describen los atributos y el tipo de variable
+glimpse(wineData)
+```
+
+```{r}
+#Se crea una tabla de contingencia para determinar la cantidad de vinos que están asociados a uno u otra clase.
+
+table(wineData$quality)
+```
+
+
+```{r}
+summary(wineData)
+```
+
+ANÁLISIS PARA LA DETERMINACIÓN DE VALORES ATÍPICOS
+
+```{r}
+boxplot(wineData$fixed.acidity, xlab="Acidez fija", col="cyan")
+boxplot(wineData$volatile.acidity, xlab="Acidez volatil", col="cyan")
+boxplot(wineData$citric.acid, xlab="Ácido cítrico", col="cyan")
+boxplot(wineData$residual.sugar, xlab="Azúcar Residual", col="cyan")
+boxplot(wineData$chlorides, xlab="Cloruro", col="cyan")
+boxplot(wineData$free.sulfur.dioxide, xlab="Dióxido de sulfuro libre", col="cyan")
+boxplot(wineData$total.sulfur.dioxide, xlab="Total Dióxido de sulfuro", col="cyan")
+boxplot(wineData$density, xlab="Densidad", col="cyan")
+boxplot(wineData$pH, xlab="PH", col="cyan")
+boxplot(wineData$sulphates, xlab="Sulfatos", col="cyan")
+boxplot(wineData$alcohol, xlab="Alcohol", col="cyan")
+```
+
+ANÁLISIS PARA DETERMINAR LA IMPORTANCIA DE LA COMPOSICIÓN QUÍMICA EN FUNCIÓN DE LA CALIDAD DEL VINO.
+
+```{r}
+boxplot(wineData$fixed.acidity~wineData$quality, main="Acidez",xlab="Calidad del Vino", ylab="Nivel de acidez", col=c(123,138,125,126,127,128))
+
+```
+
+```{r}
+boxplot(wineData$volatile.acidity~wineData$quality, main="Volatilidad de la acidez",xlab="Calidad del Vino", ylab="Volatilidad acidez", col=c(123,138,125,126,127,128))
+```
+
+```{r}
+boxplot(wineData$citric.acid~wineData$quality, main="Acido cítrico",xlab="Calidad del Vino", ylab="Nivel de acido", col=c(123,138,125,126,127,128))
+```
+
+```{r}
+boxplot(wineData$residual.sugar~wineData$quality, main="Residuo de azúcar",xlab="Calidad del Vino", ylab="Nivel de residuo", col=c(123,138,125,126,127,128))
+```
+
+```{r}
+boxplot(wineData$chlorides~wineData$quality, main="Cloruros",xlab="Calidad del Vino", ylab="Nivel cloruro", col=c(123,138,125,126,127,128))
+```
+
+```{r}
+boxplot(wineData$free.sulfur.dioxide~wineData$quality, main="Dióxido de Sulfuro Libre",xlab="Calidad del Vino", ylab="Nivel Dióxido", col=c(123,138,125,126,127,128))
+```
+
+```{r}
+boxplot(wineData$total.sulfur.dioxide~wineData$quality, main="Dióxido de Sulfuro Total",xlab="Calidad del Vino", ylab="Nivel del dióxido de sulfuro Total", col=c(123,138,125,126,127,128))
+```
+
+```{r}
+boxplot(wineData$density~wineData$quality, main="Densidad",xlab="Calidad del Vino", ylab="Nivel de densidad", col=c(123,138,125,126,127,128))
+```
+
+```{r}
+boxplot(wineData$pH~wineData$quality, main="Ph",xlab="Calidad del Vino", ylab="Nivel de Ph", col=c(123,138,125,126,127,128))
+```
+
+```{r}
+boxplot(wineData$sulphates~wineData$quality, main="Sulfatos",xlab="Calidad del Vino", ylab="Nivel de Sulfatos", col=c(123,138,125,126,127,128))
+```
+
+```{r}
+boxplot(wineData$alcohol~wineData$quality, main="Alcohol",xlab="Calidad del Vino", ylab="Nivel de alcohol", col=c(123,138,125,126,127,128))
+```
+
+ANÁLISIS PARA DETERMINAR LA CORRELACIÓN ENTRE LAS DIFERENTES VARIABLES.
+
+```{r}
+corrgram(x=cor(wineData))
+```
+
+```{r}
+R = cor(wineData[, 1:12])
+round(R, 3)
+```
+
+ANALISIS SI LA DISTRIBUCIÓN PRESENTA NORMALIDAD
+
+A pesar de que continuamente se alude al test Kolmogorov-Smirnov como un test válido para contrastar la normalidad, esto no es del todo cierto. El Kolmogorov-Smirnov asume que se conoce la media y varianza poblacional, lo que en la mayoría de los casos no es posible. Esto hace que el test sea muy conservador y poco potente. Para solventar este problema, se desarrolló una modificación del Kolmogorov-Smirnov conocida como test Lilliefors. El test Lilliefors asume que la media y varianza son desconocidas, estando especialmente desarrollado para contrastar la normalidad. Es la alternativa al test de Shapiro-Wilk cuando el número de observaciones es mayor de 50
+
+```{r}
+hist(wineData[,11],main="Alcohol", xlab="Nivel de Alcohol")
+shapiro.test(wineData$alcohol)
+lillie.test(x = wineData$alcohol)
+qqnorm(wineData$alcohol, pch = 19, col = "gray50")
+qqline(wineData$alcohol)
+```
+
+Tal y como se puede apreciar, la distribución del alcohol no es una distribución normal, podemos confirmalo aplicando el test de shapiro-wilk en el que el p-valor es inferior a 0.05 y portanto se descarta la hipótesis nula y por tanto la distribución no es normal.
+
+
+```{r}
+hist(wineData[,9], freq = F, xlim = c(3, 4), border = "gray50")
+lines(density(wineData[,9]), ylim = c(0, 0.8), xlim = c(3, 7), lwd = 2)
+curve(dnorm(x, mean(wineData[,9]), sd(wineData[,9])), lwd = 2, col = "red", add = T)
+legend("topright", c("curva observada", "curva (normal) teórica"),
+       lty = 1, lwd = 2, col = c("black", "red"), bty = "n",
+       cex = 0.8)
+shapiro.test(wineData$pH)
+lillie.test(x = wineData$pH)
+qqnorm(wineData$pH, pch = 19, col = "gray50")
+qqline(wineData$pH)
+```
+
+```{r}
+hist(wineData[,8],main="Densidad", xlab="Nivel de Densidad")
+shapiro.test(wineData$density)
+lillie.test(x = wineData$density)
+qqnorm(wineData$density, pch = 19, col = "gray50")
+qqline(wineData$density)
+```
+
+```{r}
+hist(wineData[,10],main="Sulfato", xlab="Nivel de sulfatos")
+shapiro.test(wineData$sulphates)
+lillie.test(x = wineData$sulphates)
+qqnorm(wineData$sulphates, pch = 19, col = "gray50")
+qqline(wineData$sulphates)
+```
+
+ANÁLISIS DE LA HOMOGENEIDAD DE LA VARIANZA
+
+```{r}
+leveneTest(c(wineData$alcohol,wineData$pH,wineData$density,wineData$sulphates),rep(c("Gr1","Gr2","Gr3","Gr4"), each=1599), center="median")
+```
+
+ANÁLISIS DE LOS DATOS
+
+Generamos el modelo.
+```{r}
+modelo<-lm(quality~volatile.acidity+citric.acid+density+pH+sulphates+alcohol, data=wineData)
+
+```
+
+```{r}
+summary(modelo)
+```
+
+Se elimina la densidad del modelo
+
+```{r}
+modelo<-lm(quality~volatile.acidity+citric.acid+pH+sulphates+alcohol, data=wineData)
+```
+
+```{r}
+summary(modelo)
+```
+
+Vamos a calcular la regresión estandarizando
+```{r}
+wineDataStd<-data.frame(scale(wineData))
+
+```
+
+```{r}
+modelo_standard<-lm(quality~volatile.acidity+citric.acid+pH+sulphates+alcohol, data=wineDataStd)
+```
+
+```{r}
+summary(modelo_standard)
+```
+
+```{r}
+library(relaimpo)
+```
+
+```{r}
+calc.relimp(modelo_standard, type=c("lmg"),rela=TRUE)
+```
+
+
+```{r}
+confint(lm(quality~volatile.acidity+citric.acid+density+pH+sulphates+alcohol, data=wineData))
+```
+
+```{r}
+plot1 <- ggplot(data = wineData, aes(volatile.acidity, modelo$residuals)) +
+    geom_point() + geom_smooth(color = "firebrick") + geom_hline(yintercept = 0) +
+    theme_bw()
+plot2 <- ggplot(data = wineData, aes(citric.acid, modelo$residuals)) +
+    geom_point() + geom_smooth(color = "firebrick") + geom_hline(yintercept = 0) +
+    theme_bw()
+plot3 <- ggplot(data = wineData, aes(density, modelo$residuals)) +
+    geom_point() + geom_smooth(color = "firebrick") + geom_hline(yintercept = 0) +
+    theme_bw()
+plot4 <- ggplot(data = wineData, aes(pH, modelo$residuals)) +
+    geom_point() + geom_smooth(color = "firebrick") + geom_hline(yintercept = 0) +
+    theme_bw()
+plot5 <- ggplot(data = wineData, aes(alcohol, modelo$residuals)) +
+    geom_point() + geom_smooth(color = "firebrick") + geom_hline(yintercept = 0) +
+    theme_bw()
+grid.arrange(plot1, plot2, plot3, plot4, plot5)
+```
+
+
+```{r}
+qqnorm(modelo$residuals)
+qqline(modelo$residuals)
+```
+
+```{r}
+shapiro.test(modelo$residuals)
+```
+
+SE REALIZA UNA PREDICCIÓN
+
+```{r}
+datosTestX<-select(wineData,volatile.acidity,citric.acid,pH,sulphates,alcohol)
+
+```
+
+```{r}
+y_predict<-predict(modelo,datosTestX)
+```
+
+```{r}
+wineData$prediccion<-as.integer(y_predict+0.5)
+```
+
+```{r}
+wineData
+```
+
+RESULTADO 
+
+```{r}
+quality1<-table(wineData$quality)
+quality1
+```
+
+
+```{r}
+barplot(quality1,main="Calidad del vino",xlab="Calidad",ylab="Muestras",col=c("red","blue","yellow","green","orange"))
+```
+
+```{r}
+quality2<-table(wineData$prediccion)
+quality2
+```
+
+
+```{r}
+barplot(quality2,main="Calidad del vino",xlab="Calidad",ylab="Muestras",col=c("red","blue","yellow","green","orange"))
+```
+
